@@ -1,0 +1,27 @@
+# Private settings and user data
+.env
+.env.*
+!.env.example
+data/
+photos/
+*.sqlite3
+*.sqlite3-*
+# Python and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+# Local machine and downloaded models
+.DS_Store
+.vscode/
+.idea/
+models/
+vosk-model*/
+*.pt
+*.pth
+*.onnx
+*.log

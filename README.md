@@ -1,77 +1,113 @@
-# TIKI — Camera-Only Button + Faster Voice (TreeHacks MVP)
+# TIKI
 
-**Complete VS Code source — not a patch.** Animated TIKI mascot frontend, FastAPI backend, optional offline wake phrase, ESP32-S3 camera + MAX98357A speaker, saved photos, vision memory, notes, and reminders. Keep your already-working ESP32 sketch; **no Arduino upload is needed**.
+**A wearable AI companion that sees, understands, and remembers.**
 
-## Interaction contract (this is intentional)
+TIKI is an ESP32-S3 smart-glasses **MVP** combining a physical camera button, a front-facing camera, a hardware speaker, Gemini-powered visual understanding, and a searchable local visual memory. The Mac currently handles microphone input and AI processing; the glasses capture pictures and play answers through the attached speaker.
 
-- **Physical glasses button = CAMERA ONLY.** One tap captures exactly one authorized photo. If you just tap it, TIKI saves the image and describes the scene. If you first ask via voice, e.g., "TIKI, look at this dog — what breed might it be?", it waits for your tap, then saves and answers that specific question.
-- **On-screen Talk button = MICROPHONE.** Tap to start recording with the Mac microphone; tap *Finish speaking* when done. The text and answer appear in the app. On supported Chrome versions, browser recognition can skip separate transcription.
-- **Optional "Hey TIKI, spots on" = hands-free speech.** Requires the separately installed Vosk model (see below) and the Mac microphone, not the hardware button.
-- **Replies = the ESP32 speaker**, NOT the Mac output. The Mac synthesizes an audio file but does not play it locally. No onboard mic exists yet.
+![TIKI desktop interface](docs/tiki-desktop-preview.png)
 
-The older working ESP32 sketch may leave the LED toggled after a button press; the Python application cannot correct that firmware behavior. The newer reference sketch in `firmware/` has tighter camera permissions but **do not upload it just for this software update**.
+## Demo
 
-## How this version reduces delays
+**Live hardware footage coming soon.** This repository currently includes screenshots of the real app interface. The demo video and prototype photographs can be added to `docs/` and linked here when available.
 
-The browser Talk recording now sends audio through `/api/voice/fast`: **one Gemini request produces both the literal transcript and a short answer**. Older versions issued two sequential requests (transcribe then answer). It falls back to the original two-request path if the fast route is unsupported. Optional wake-mode voice uses the same one-request processing. Text requests skip redundant ESP32 status checks. Physical camera taps are handled from press counters so short taps aren't missed; button polling is lighter than before. Spoken summaries are shorter, so less PCM needs to be synthesized and sent over Wi-Fi.
+![TIKI mobile interface](docs/tiki-mobile-preview.png)
 
-**This improves the architecture, but cannot guarantee a fixed response time.** Gemini overload, network delays, voice encoding, and PCM delivery still take time. Camera image analysis always needs an additional Gemini Vision request because the picture must be captured first.
+### The interaction
 
-## Install in VS Code (Mac)
+1. Use **Talk to TIKI** in the browser to ask a question (for example, “TIKI, look at this and tell me what you see”).
+2. Point the glasses camera at the scene and **tap the physical camera button**. The physical button is **camera-only**, not a microphone button.
+3. TIKI captures a JPEG, stores it locally, and requests a visual description.
+4. The reply is played through the **physical speaker attached to the ESP32**, and the image and description remain available in the photo library.
+5. Ask TIKI about an earlier photo to retrieve saved visual memory.
 
-1. Extract the ZIP, open `TIKI_FINAL_COMPLETE_CAMERA_ONLY` folder in VS Code.
-2. **Stop your previous TIKI Uvicorn server**, and keep a copy of your previously working folder.
-3. Run:
+## Features
+
+- **Camera-only hardware button:** one tap requests a photo capture.
+- **Vision:** describes objects, handwriting, and scenes; can offer uncertain guesses about breeds.
+- **Persistent photo memory:** saves original JPEGs and their descriptions for later retrieval.
+- **Voice:** browser Talk uses the Mac microphone; the physical ESP32 speaker plays replies.
+- **Reminders and notes:** saved locally, with confirmation for suggested tasks.
+- **Minimal mascot interface:** TIKI reacts to listening, thinking, and speaking states.
+- **Optional:** offline wake phrase on the Mac (Vosk) and YOLO generic object tags.
+
+## Architecture
+
+```text
+  Talk button (browser) --> Mac microphone --> FastAPI / Gemini
+                                               |         ^
+                                        voice  |         | photo
+                                               v         |
+                                      ESP32-S3 + OV3660 camera
+                                      |         |         |
+                                    speaker   button   red LED
+
+                              Local SQLite and JPEG photo library
+```
+
+The Mac and ESP32 must be on the **same local Wi-Fi network**. TIKI does not have an onboard microphone in this MVP. The Mac server must remain running for voice and memory functions.
+
+## Hardware
+
+- ESP32-S3 with camera / PSRAM
+- OV3660 camera
+- MAX98357A I2S amplifier and small speaker
+- Physical camera push button
+- Camera-status LED and appropriate resistor
+- Insulated connections and suitable USB power supply
+
+`firmware/TIKI_Permission_Camera.ino` is a reference sketch. **Keep an already working ESP32 firmware version unless there is a specific reason to change it.** Before wearing, insulate electronics, secure the wiring, and test for abnormal heating off your face.
+
+## Run locally (macOS)
 
 ```bash
+git clone https://github.com/desharajudevihasini/TIKI.git
+cd TIKI
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
-4. Edit `.env`: add a **new private** `GEMINI_API_KEY` and `TIKI_ESP_URL=http://YOUR_CURRENT_ESP32_IP`. Set `TIKI_AI_MODEL=auto`, `TIKI_MAC_BRIDGE=1`, `TIKI_FAST_REPLIES=1`. You previously exposed an API key in chat; **revoke/rotate that key before pushing to GitHub**.
-5. To preserve previous captures and memories, copy your **existing `data/` folder** into this extracted folder with both servers stopped. Don't commit `data/` or `.env`.
-6. Test connection (use the current actual IP from Arduino Serial Monitor):
+Open `.env` privately and set `GEMINI_API_KEY` to your own key and `TIKI_ESP_URL` to the **current** address shown in Arduino Serial Monitor at 115200 baud. Leave `TIKI_AI_MODEL=auto` and `TIKI_MAC_BRIDGE=1` for the MVP.
+
+Test hardware connectivity:
 
 ```bash
-curl --max-time 5 http://YOUR_ESP_IP/button
+curl --max-time 5 http://YOUR_ESP32_IP/status
 python tools/preflight.py --beep
+python tools/check_camera_button.py
 ```
 
-7. Start:
+Then start TIKI:
 
 ```bash
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8002
 ```
 
-Open http://localhost:8002 in **Chrome**, press Cmd+Shift+R. If port 8002 is busy, stop the old server or use 8003. Keep the server running while using TIKI. You may need to grant macOS microphone permissions to Terminal/VS Code.
+Visit **http://localhost:8002** in Chrome. Allow microphone access if prompted.
 
-### Final demo (about 60 seconds)
+If the speaker reports “No route to host,” check the current ESP32 IP. A local DHCP address can change; do not hard-code an old one. If the button counter never changes on the ESP32, check the GPIO40-to-GND button circuit before debugging the Python server.
 
-1. **Speech:** Click **Talk to TIKI**, say "Hey TIKI, spots on. What can you do?", click **Finish speaking**. See the transcript and hear the wearable speaker answer.
-2. **Vision:** Click Talk, say "TIKI, look at this dog and tell me its likely breed", click Finish. TIKI shows "Waiting for camera button". Aim the camera and **tap the ESP32 button once**. One real JPEG is saved, shown, and analyzed; TIKI speaks the visual answer through its physical speaker. Breed estimates are tentative, not certain identification.
-3. **Memory:** Click Talk and ask, "What did you see in that photo earlier?" or open **Your library → Photos** to display the saved image and description.
+## Project structure
 
-You can also **tap the camera button without speaking** to take and describe one photo.
-
-### Optional wake phrase / YOLO
-
-- Optional Mac-based offline wake model: `python tools/install_wake_model.py` and enable the on-screen wake switch. It requires the Mac microphone running. The model is not bundled.
-- Optional generic object tags from YOLO: `python -m pip install -r requirements-yolo.txt`, then `TIKI_YOLO_ENABLED=1` in `.env`. **Leave it off for the fastest demo.** YOLO does not reliably classify dog breeds; Gemini analyzes the captured image.
-
-### Privacy, safety and source control
-
-Photographs and SQLite are stored locally under `data/photos` and `data/tiki.sqlite3`, but authorized audio and photos sent to Gemini leave your computer. The old ESP32 firmware may expose `/capture` to anyone on the same trusted LAN; never expose the ESP32 or Mac backend to the public internet. Do not record others without consent. If the ESP32 feels unusually hot, disconnect it.
-
-```bash
-python -m pytest tests -q
-node --check frontend/app.js
-python -m compileall -q app
-# Review before publishing
- git init
- git add .
- git status
+```text
+app/                   AI, FastAPI, audio, visual memory and hardware bridge
+frontend/              TIKI browser interface and mascot
+firmware/              ESP32 reference firmware
+models/                (optional local downloads; ignored by Git)
+tests/                 Software tests with simulated services/hardware
+tools/                 Hardware diagnostics
+docs/                 App screenshots and demo guide
+.env.example           Example setup, no secret values
+requirements.txt       Python dependencies
 ```
 
-`.gitignore` excludes `.env`, `data/`, `.venv/` and models. For repository upload, commit only after checking `git status`, and push to a repo you own. The suite simulates Gemini and ESP32; this package is **not yet live-tested on your exact hardware after the update**.
+To run tests: `python -m pip install pytest && python -m pytest tests -q`.
+
+## Privacy and limitations
+
+This is a hardware **MVP**, not a standalone production device. No onboard microphone is currently installed; a nearby Mac handles speech input and Gemini processing. Latency can vary with cloud service load and Wi-Fi. Photos and memories are stored locally under `data/` (excluded from Git), but authorized requests to Gemini send audio or image content to an external service. Do not publish the local ESP32 or Mac hardware-control endpoints to the public internet. Ask permission before capturing other people's images.
+
+**Repository safety:** `.env`, private photos, SQLite databases, Python virtual environments and downloaded models are excluded by `.gitignore`. Never commit an API key or Wi-Fi password.
+
+For the recording flow and media checklist, see [docs/DEMO_GUIDE.md](docs/DEMO_GUIDE.md).
