@@ -6,9 +6,20 @@ TIKI is an ESP32-S3 smart-glasses **MVP** combining a physical camera button, a 
 
 ![TIKI desktop interface](docs/tiki-desktop-preview.png)
 
-## Demo
+## Live prototype and demo
 
-**Live hardware footage coming soon.** This repository currently includes screenshots of the real app interface. The demo video and prototype photographs can be added to `docs/` and linked here when available.
+[![Watch the 25-second TIKI demo](docs/media/tiki-demo-poster.jpg)](docs/media/tiki-live-demo.mp4)
+
+**[Watch TIKI's 25-second hardware demo (MP4)](docs/media/tiki-live-demo.mp4)** — real footage of the glasses prototype and TIKI's interface during a visual-recognition demonstration.
+
+### Built, not just rendered
+
+<p align="center">
+  <img src="docs/media/tiki-glasses-prototype.jpg" alt="TIKI smart glasses MVP, with an ESP32-S3, camera, and prototype electronics mounted beside the frame" width="49%" />
+  <img src="docs/media/tiki-hardware-closeup.jpg" alt="TIKI's ESP32-S3, MAX98357A amplifier, speaker, button and camera on the working breadboard prototype" width="49%" />
+</p>
+
+*Current MVP hardware: ESP32-S3 camera, breadboard-based audio amplifier and speaker, physical camera button, and LED. The current mounted build is a prototype and requires insulation, secure mounting, and thermal checks before wear.*
 
 ![TIKI mobile interface](docs/tiki-mobile-preview.png)
 
@@ -97,7 +108,7 @@ firmware/              ESP32 reference firmware
 models/                (optional local downloads; ignored by Git)
 tests/                 Software tests with simulated services/hardware
 tools/                 Hardware diagnostics
-docs/                 App screenshots and demo guide
+docs/                  App screenshots, demo media and guide
 .env.example           Example setup, no secret values
 requirements.txt       Python dependencies
 ```
