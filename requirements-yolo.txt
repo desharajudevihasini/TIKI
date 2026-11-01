@@ -1,0 +1,3 @@
+# OPTIONAL: generic local object detection; not required for camera/voice.
+# It can be heavy on a laptop and will download pretrained weights first use.
+ultralytics>=8.3,<9

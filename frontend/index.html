@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101014" />
+  <meta name="description" content="TIKI — smart glasses with a camera, visual memory, and a voice that speaks through the wearable." />
+  <link rel="icon" type="image/png" href="/assets/tiki-icon.png" />
+  <link rel="preload" href="/assets/tiki-mascot.webp" as="image" type="image/webp" />
+  <link rel="stylesheet" href="/assets/styles.css?v=cameraonly3" />
+  <title>TIKI — With you.</title>
+</head>
+<body>
+  <main class="shell">
+    <header><div class="wordmark"><img src="/assets/tiki-icon.png" alt="" width="31" height="31" class="brand-icon" />tiki<span>.</span></div><button class="subtle" id="worldBtn" type="button">your library <span aria-hidden="true">↗</span></button></header>
+    <section class="hero">
+      <div class="eyebrow"><span class="tiny-dot"></span> YOUR VOICE + VISION COMPANION</div>
+      <div class="character mascot-stage" id="character" data-mode="ready" role="img" aria-label="TIKI, your pink-red companion, ready to listen">
+        <div class="mascot-ring mascot-ring-1" aria-hidden="true"></div>
+        <div class="mascot-ring mascot-ring-2" aria-hidden="true"></div>
+        <img class="mascot-img" src="/assets/tiki-mascot.webp" alt="" width="1050" height="1050" fetchpriority="high" decoding="async" />
+        <div class="mascot-shadow" aria-hidden="true"></div>
+      </div>
+      <h1>Your little superpower.</h1>
+      <p id="status" role="status" aria-live="polite">Connecting to your glasses…</p>
+      <div class="transcript" id="heard" aria-live="polite"></div><button id="correctTranscript" class="tiny-action" type="button" hidden>Correct what TIKI heard</button>
+      <img id="lastPhoto" class="captured-photo" alt="Photo just captured by TIKI glasses" hidden />
+      <p id="answer" class="answer" aria-live="polite"></p>
+      <div class="proposal" id="proposal" hidden aria-live="polite">
+        <div class="proposal-title">Possible tasks from your photo</div>
+        <div id="proposalItems" class="proposal-items"></div>
+        <div class="proposal-actions"><button type="button" id="approveTasks">Save tasks</button><button type="button" id="rejectTasks">Not now</button></div>
+      </div>
+      <button id="talkBtn" class="talk" type="button"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg><span id="talkText">Talk to TIKI</span></button>
+      <div class="smallhelp" id="help">Tap Talk to speak. The physical glasses button is camera-only.</div>
+      <label class="wake"><input type="checkbox" id="wakeToggle"><span class="track"></span><span>Hey TIKI, spots on</span></label>
+      <details class="fallback"><summary>Type a message</summary><form id="typeForm"><input id="typeText" autocomplete="off" placeholder="Tell TIKI something" maxlength="1000" aria-label="Message"/><button type="submit">Send</button></form></details>
+    </section>
+    <footer><span id="connectLight" class="connection-dot"></span><span id="deviceLabel">Checking hardware</span><span class="footnote">TIKI captures a photo only when you press the camera button.</span></footer>
+  </main>
+  <div class="scrim" id="drawer" hidden><section class="drawer" role="dialog" aria-modal="true" aria-label="Notes and plans"><div class="drawerhead"><strong>Saved by TIKI</strong><button type="button" id="closeDrawer" aria-label="Close">×</button></div><div class="tabs"><button type="button" data-category="reminders" class="on">Plans</button><button type="button" data-category="notes">Notes</button><button type="button" data-category="memories">Memories</button><button type="button" data-category="captures">Photos</button></div><form id="searchForm" class="searchbox"><input id="searchText" placeholder="Search saved moments and notes" aria-label="Search memories" maxlength="300"/><button type="submit" aria-label="Search">Search</button></form><div id="items" class="items"></div><form id="saveForm"><input id="saveText" placeholder="Add a plan" maxlength="500" required><button type="submit">Save</button></form>
+      <label class="due-label" id="dueWrap">Optional reminder date and time <input id="dueInput" type="datetime-local" /></label>
+      <div class="drawer-actions"><button class="quiet-test" id="takePhonePhoto" type="button">Share a phone photo</button><button class="quiet-test" id="exportBackup" type="button">Export memory backup</button><button class="quiet-test" id="testSpeaker" type="button">Test glasses speaker</button></div>
+      <input type="file" id="phonePhoto" accept="image/*" capture="environment" hidden /></section></div>
+  <script src="/assets/app.js?v=cameraonly3" defer></script>
+</body>
+</html>
